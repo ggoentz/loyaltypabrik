@@ -18,7 +18,6 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <style>
-        /* Custom Scrollbar biru di sisi kanan untuk daftar barang & keranjang */
         .custom-scroll::-webkit-scrollbar {
             width: 6px;
         }
@@ -38,7 +37,6 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex justify-center">
 
-    <!-- Container Utama Ukuran Mobile-First -->
     <div class="w-full max-w-md bg-white min-h-screen shadow-lg flex flex-col relative">
 
         <!-- Notifikasi Toast Mengambang -->
@@ -59,7 +57,6 @@
             </div>
 
             <div class="p-5 space-y-5 flex-1">
-                <!-- Form Login Karyawan -->
                 <div id="section-emp-login" class="space-y-4">
                     <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900">
                         Masukkan nomor HP yang sudah terdaftar untuk membuka Kartu QR & saldo poin Anda.
@@ -75,7 +72,6 @@
                     </button>
                 </div>
 
-                <!-- Form Registrasi Karyawan Baru -->
                 <div id="section-emp-register" class="space-y-4 hidden">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap Karyawan</label>
@@ -95,7 +91,6 @@
 
                 <hr class="border-slate-200 my-4">
 
-                <!-- Akses Mode Kasir Warung -->
                 <div class="pt-2">
                     <p class="text-xs text-center text-slate-500 mb-2">Khusus Pemilik / Kasir Warung Mitra:</p>
                     <button id="btn-open-cashier-from-auth"
@@ -116,7 +111,6 @@
             </header>
 
             <div class="p-5 space-y-4 flex-1 overflow-y-auto">
-                <!-- Kartu Member Loyalty -->
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center shadow-sm space-y-3">
                     <p class="text-xs font-bold tracking-widest text-blue-700">KARTU MEMBER LOYALTY</p>
 
@@ -134,7 +128,6 @@
                     <p id="card-emp-id" class="text-[10px] text-slate-400 break-all">ID: -</p>
                 </div>
 
-                <!-- Tombol Aksi Utama -->
                 <div class="space-y-2.5">
                     <button id="btn-refresh-points"
                         class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-full text-sm shadow">
@@ -176,7 +169,6 @@
             </header>
 
             <div class="p-5 space-y-4 flex-1 overflow-y-auto">
-                <!-- Banner Saldo Karyawan -->
                 <div class="bg-blue-100 rounded-2xl p-4 flex justify-between items-center">
                     <div>
                         <p id="redeem-emp-name" class="font-bold text-blue-950 text-base">-</p>
@@ -213,7 +205,6 @@
             </div>
 
             <div class="p-5 flex-1 overflow-y-auto">
-                <!-- Tab 1: Histori Belanja Pribadi -->
                 <div id="section-hist-personal" class="space-y-4">
                     <div class="bg-blue-100 rounded-2xl p-4 text-blue-950 space-y-2">
                         <p class="font-bold text-sm">Ringkasan Belanja <span id="hist-summary-name">-</span></p>
@@ -235,7 +226,6 @@
                     <div id="my-transactions-list" class="space-y-3 pb-6"></div>
                 </div>
 
-                <!-- Tab 2: Rekap Warung & Zona -->
                 <div id="section-hist-warung" class="space-y-4 hidden">
                     <h2 class="font-bold text-sm text-slate-800">Perbandingan Zona: Area Pabrik vs. Area Kost</h2>
                     <div class="grid grid-cols-2 gap-3">
@@ -251,7 +241,6 @@
                         </div>
                     </div>
 
-                    <!-- Progress Bar Proporsi -->
                     <div class="border border-slate-200 rounded-xl p-3.5 space-y-2">
                         <div class="flex justify-between text-xs font-semibold">
                             <span>Pabrik: <span id="recap-pabrik-pct">0%</span></span>
@@ -283,7 +272,6 @@
             </div>
 
             <div class="p-5 flex-1 overflow-y-auto">
-                <!-- Tab Masuk Kasir -->
                 <div id="section-warung-signin" class="space-y-4">
                     <p class="font-bold text-sm text-slate-800">Pilih Warung Mitra Anda</p>
                     <div id="warung-select-list" class="space-y-2.5 max-h-60 overflow-y-auto custom-scroll pr-1"></div>
@@ -300,7 +288,6 @@
                     </button>
                 </div>
 
-                <!-- Tab Daftar Warung Baru -->
                 <div id="section-warung-signup" class="space-y-4 hidden">
                     <p class="font-bold text-sm text-slate-800">Registrasi Mitra Warung Baru</p>
                     <div>
@@ -352,7 +339,6 @@
             </header>
 
             <div class="p-5 space-y-4 flex-1 overflow-y-auto pb-32">
-                <!-- Banner Warung Aktif -->
                 <div class="bg-blue-100 rounded-2xl p-4 space-y-3">
                     <div class="flex justify-between items-center">
                         <div>
@@ -371,7 +357,6 @@
                     </button>
                 </div>
 
-                <!-- Langkah 1: Identifikasi Pembeli -->
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                     <h3 class="font-bold text-sm text-blue-900">1. Identifikasi Pembeli (Karyawan)</h3>
 
@@ -380,7 +365,6 @@
                         SCAN QR KARTU KARYAWAN
                     </button>
 
-                    <!-- Area Kamera Pemindai QR -->
                     <div id="qr-reader-wrapper" class="hidden space-y-2 bg-black p-2 rounded-xl">
                         <div id="qr-reader" class="w-full rounded-lg overflow-hidden"></div>
                         <button id="btn-stop-qr-scan"
@@ -397,7 +381,6 @@
                         CEK DATA KARYAWAN
                     </button>
 
-                    <!-- Hasil Data Karyawan -->
                     <div id="cashier-emp-result" class="hidden bg-indigo-100 rounded-xl p-3 text-indigo-950 text-xs space-y-0.5">
                         <p id="cashier-emp-name" class="font-bold text-sm">-</p>
                         <p>No. HP: <span id="cashier-emp-phone">-</span></p>
@@ -405,18 +388,15 @@
                     </div>
                 </div>
 
-                <!-- Langkah 2: Pilih Barang Belanja (Barang x Jumlah) -->
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                     <h3 class="font-bold text-sm text-blue-900">2. Pilih Barang Belanja (Barang × Jumlah)</h3>
 
                     <input id="cashier-product-search" type="text" placeholder="Cari Nama Barang di Katalog..."
                         class="w-full border border-slate-300 bg-white rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-600">
 
-                    <!-- Daftar Katalog Scrollable dengan Scrollbar Kanan -->
                     <div id="cashier-product-list"
                         class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll pr-2"></div>
 
-                    <!-- Input Qty & Tombol Tambah -->
                     <div class="flex gap-2 items-center pt-1">
                         <div class="w-24">
                             <input id="cashier-qty-input" type="number" min="1" value="1"
@@ -428,7 +408,6 @@
                         </button>
                     </div>
 
-                    <!-- Rincian Struk Belanja Scrollable -->
                     <div id="cashier-cart-section" class="hidden pt-2 border-t border-slate-200 space-y-2">
                         <p class="font-bold text-xs text-slate-800">
                             Rincian Struk Belanja (<span id="cashier-cart-count">0</span> item):
@@ -443,7 +422,6 @@
                 </div>
             </div>
 
-            <!-- Bar Total & Checkout Menempel di Bawah -->
             <div class="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 px-5 py-3 shadow-lg space-y-2">
                 <div class="flex justify-between items-center text-sm font-bold">
                     <span>Total: <span id="cashier-total-amount">Rp 0</span></span>
@@ -471,7 +449,6 @@
             </div>
 
             <div class="p-5 flex-1 overflow-y-auto">
-                <!-- Tab 1: Daftar Harga Barang -->
                 <div id="section-pos-products" class="space-y-4">
                     <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
                         <p class="font-bold text-xs text-blue-900">Tambah Barang Baru</p>
@@ -493,7 +470,59 @@
                         class="space-y-2 max-h-72 overflow-y-auto custom-scroll pr-2 pb-4"></div>
                 </div>
 
-                <!-- Tab 2: Daftar & Pengaturan Nilai Poin -->
                 <div id="section-pos-points" class="space-y-4 hidden">
                     <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
-                        <p class="font-bold text-	
+                        <p class="font-bold text-xs text-blue-900">Tambah Opsi Nilai Poin Baru</p>
+                        <input id="new-point-rule-input" type="number" placeholder="Kelipatan Rupiah per 1 Poin (Contoh: 15000)"
+                            class="w-full border border-slate-300 bg-white rounded-xl px-3.5 py-2.5 text-sm">
+                        <p id="point-rule-sim-text" class="text-xs font-semibold text-blue-700">
+                            Simulasi: Belanja Rp 30.000 → Dapat +3 Poin
+                        </p>
+                        <button id="btn-add-point-rule"
+                            class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 rounded-full text-xs">
+                            + TAMBAH KE DAFTAR & AKTIFKAN
+                        </button>
+                    </div>
+
+                    <p class="font-bold text-sm text-slate-800">Daftar Nilai Poin Tersimpan</p>
+                    <div id="pos-point-rule-list"
+                        class="space-y-2 max-h-72 overflow-y-auto custom-scroll pr-2 pb-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- MODAL KONFIRMASI TUKAR HADIAH                             -->
+        <!-- ========================================================= -->
+        <div id="modal-redeem-confirm" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-5">
+            <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-xl">
+                <h3 class="font-bold text-base text-slate-900">Konfirmasi Penukaran</h3>
+                <p id="modal-redeem-text" class="text-sm text-slate-600">-</p>
+                <div class="flex justify-end gap-2">
+                    <button id="btn-cancel-redeem" class="px-4 py-2 text-sm font-semibold text-slate-600">Batal</button>
+                    <button id="btn-confirm-redeem" class="px-4 py-2 text-sm font-bold bg-blue-800 text-white rounded-xl">Ya, Tukar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- MODAL UBAH HARGA BARANG                                   -->
+        <!-- ========================================================= -->
+        <div id="modal-edit-price" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-5">
+            <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-xl">
+                <h3 id="modal-edit-prod-title" class="font-bold text-base text-slate-900">Ubah Harga Barang</h3>
+                <input id="modal-edit-prod-price" type="number" placeholder="Harga Satuan Baru (Rp)"
+                    class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm">
+                <div class="flex justify-end gap-2">
+                    <button id="btn-cancel-edit-price" class="px-4 py-2 text-sm font-semibold text-slate-600">Batal</button>
+                    <button id="btn-save-edit-price" class="px-4 py-2 text-sm font-bold bg-blue-800 text-white rounded-xl">Simpan</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Menghubungkan ke Logika Aplikasi -->
+    <script src="app.js"></script>
+</body>
+</html>
