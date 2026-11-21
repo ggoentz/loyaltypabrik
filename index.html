@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>LoyaltyPabrik - Sistem Poin & Kasir Warung</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- HTML5 QR Code Camera Scanner -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <style>
+        /* Custom Scrollbar biru di sisi kanan untuk daftar barang & keranjang */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 9999px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 9999px;
+        }
+        #qrcode-container img,
+        #qrcode-container canvas {
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex justify-center">
+
+    <!-- Container Utama Ukuran Mobile-First -->
+    <div class="w-full max-w-md bg-white min-h-screen shadow-lg flex flex-col relative">
+
+        <!-- Notifikasi Toast Mengambang -->
+        <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm space-y-2 pointer-events-none"></div>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 1: REGISTRASI & LOGIN KARYAWAN                       -->
+        <!-- ========================================================= -->
+        <div id="view-emp-auth" class="flex-1 flex flex-col">
+            <header class="bg-blue-900 text-white px-5 py-4 shadow">
+                <h1 class="text-lg font-bold">LoyaltyPabrik</h1>
+                <p class="text-xs text-blue-200">Kartu Poin Digital Karyawan & Mitra Warung</p>
+            </header>
+
+            <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-sm font-semibold">
+                <button id="tab-emp-login" class="py-3 text-blue-700 border-b-2 border-blue-700">Masuk (Sudah Daftar)</button>
+                <button id="tab-emp-register" class="py-3 text-slate-500">Daftar Karyawan Baru</button>
+            </div>
+
+            <div class="p-5 space-y-5 flex-1">
+                <!-- Form Login Karyawan -->
+                <div id="section-emp-login" class="space-y-4">
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900">
+                        Masukkan nomor HP yang sudah terdaftar untuk membuka Kartu QR & saldo poin Anda.
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor HP Karyawan</label>
+                        <input id="login-emp-phone" type="tel" placeholder="Contoh: 081234567890"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600">
+                    </div>
+                    <button id="btn-emp-login"
+                        class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow">
+                        MASUK & TAMPILKAN KARTU QR
+                    </button>
+                </div>
+
+                <!-- Form Registrasi Karyawan Baru -->
+                <div id="section-emp-register" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap Karyawan</label>
+                        <input id="reg-emp-name" type="text" placeholder="Contoh: Gunawan"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor HP (WhatsApp)</label>
+                        <input id="reg-emp-phone" type="tel" placeholder="Contoh: 081234567890"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600">
+                    </div>
+                    <button id="btn-emp-register"
+                        class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow">
+                        DAFTAR & BUAT KARTU QR
+                    </button>
+                </div>
+
+                <hr class="border-slate-200 my-4">
+
+                <!-- Akses Mode Kasir Warung -->
+                <div class="pt-2">
+                    <p class="text-xs text-center text-slate-500 mb-2">Khusus Pemilik / Kasir Warung Mitra:</p>
+                    <button id="btn-open-cashier-from-auth"
+                        class="w-full border-2 border-blue-700 text-blue-700 hover:bg-blue-50 font-bold py-3 rounded-xl text-sm">
+                        BUKA MODE KASIR WARUNG
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 2: KARTU QR POIN KARYAWAN                            -->
+        <!-- ========================================================= -->
+        <div id="view-emp-card" class="flex-1 flex flex-col hidden">
+            <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
+                <h1 class="text-lg font-bold text-slate-800">Kartu QR Poin Karyawan</h1>
+                <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-1 rounded-full">Member Aktif</span>
+            </header>
+
+            <div class="p-5 space-y-4 flex-1 overflow-y-auto">
+                <!-- Kartu Member Loyalty -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center shadow-sm space-y-3">
+                    <p class="text-xs font-bold tracking-widest text-blue-700">KARTU MEMBER LOYALTY</p>
+
+                    <div id="qrcode-container" class="bg-white p-3 rounded-xl inline-block border border-slate-200"></div>
+
+                    <div>
+                        <h2 id="card-emp-name" class="text-xl font-bold text-slate-900">-</h2>
+                        <p id="card-emp-phone" class="text-xs text-slate-500">No. HP: -</p>
+                    </div>
+
+                    <div class="inline-block bg-blue-100 text-blue-900 font-bold px-5 py-2 rounded-xl text-sm">
+                        Saldo Poin: <span id="card-emp-points">0</span> Poin
+                    </div>
+
+                    <p id="card-emp-id" class="text-[10px] text-slate-400 break-all">ID: -</p>
+                </div>
+
+                <!-- Tombol Aksi Utama -->
+                <div class="space-y-2.5">
+                    <button id="btn-refresh-points"
+                        class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-full text-sm shadow">
+                        REFRESH SALDO POIN
+                    </button>
+
+                    <button id="btn-open-redeem"
+                        class="w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-bold py-3 rounded-full text-sm">
+                        TUKAR POIN & KATALOG HADIAH
+                    </button>
+
+                    <button id="btn-open-history"
+                        class="w-full border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-full text-sm">
+                        RIWAYAT BELANJA & REKAP WARUNG
+                    </button>
+
+                    <button id="btn-emp-logout"
+                        class="w-full border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold py-2.5 rounded-full text-xs">
+                        GANTI AKUN / DAFTAR BARU
+                    </button>
+
+                    <div class="pt-2">
+                        <button id="btn-open-cashier-from-card"
+                            class="w-full text-blue-700 hover:bg-blue-50 font-bold py-2.5 rounded-full text-sm">
+                            BUKA MODE KASIR WARUNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 3: KATALOG PENUKARAN POIN (REDEEM)                   -->
+        <!-- ========================================================= -->
+        <div id="view-redeem" class="flex-1 flex flex-col hidden">
+            <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
+                <h1 class="text-lg font-bold text-slate-800">Katalog Tukar Poin</h1>
+                <button id="btn-back-from-redeem" class="text-sm font-semibold text-blue-700">Kembali</button>
+            </header>
+
+            <div class="p-5 space-y-4 flex-1 overflow-y-auto">
+                <!-- Banner Saldo Karyawan -->
+                <div class="bg-blue-100 rounded-2xl p-4 flex justify-between items-center">
+                    <div>
+                        <p id="redeem-emp-name" class="font-bold text-blue-950 text-base">-</p>
+                        <p class="text-xs text-blue-800">Pilih hadiah sesuai saldo poin Anda</p>
+                    </div>
+                    <span class="bg-blue-800 text-white font-bold text-xs px-3 py-1.5 rounded-lg">
+                        <span id="redeem-emp-points">0</span> Poin
+                    </span>
+                </div>
+
+                <h2 class="font-bold text-base text-slate-800">Pilihan Hadiah Bertingkat</h2>
+                <div id="reward-catalog-list" class="space-y-3"></div>
+
+                <h2 class="font-bold text-base text-slate-800 pt-2">Riwayat Klaim Hadiah</h2>
+                <div id="redemption-history-list" class="space-y-2.5 pb-6"></div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 4: RIWAYAT BELANJA & REKAP KONTRIBUSI WARUNG         -->
+        <!-- ========================================================= -->
+        <div id="view-history" class="flex-1 flex flex-col hidden">
+            <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
+                <h1 class="text-lg font-bold text-slate-800">Riwayat & Rekap Warung</h1>
+                <div class="space-x-3">
+                    <button id="btn-refresh-history" class="text-sm font-semibold text-blue-700">Refresh</button>
+                    <button id="btn-back-from-history" class="text-sm font-semibold text-slate-600">Kembali</button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-xs font-bold">
+                <button id="tab-hist-personal" class="py-3 text-blue-700 border-b-2 border-blue-700">Histori Belanja</button>
+                <button id="tab-hist-warung" class="py-3 text-slate-500">Rekap Warung & Zona</button>
+            </div>
+
+            <div class="p-5 flex-1 overflow-y-auto">
+                <!-- Tab 1: Histori Belanja Pribadi -->
+                <div id="section-hist-personal" class="space-y-4">
+                    <div class="bg-blue-100 rounded-2xl p-4 text-blue-950 space-y-2">
+                        <p class="font-bold text-sm">Ringkasan Belanja <span id="hist-summary-name">-</span></p>
+                        <div class="grid grid-cols-3 gap-2 text-xs">
+                            <div>
+                                <p class="text-blue-800">Transaksi</p>
+                                <p id="hist-summary-count" class="font-bold text-sm">0x</p>
+                            </div>
+                            <div>
+                                <p class="text-blue-800">Total Belanja</p>
+                                <p id="hist-summary-amount" class="font-bold text-sm">Rp 0</p>
+                            </div>
+                            <div>
+                                <p class="text-blue-800">Total Poin</p>
+                                <p id="hist-summary-points" class="font-bold text-sm">+0 Poin</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="my-transactions-list" class="space-y-3 pb-6"></div>
+                </div>
+
+                <!-- Tab 2: Rekap Warung & Zona -->
+                <div id="section-hist-warung" class="space-y-4 hidden">
+                    <h2 class="font-bold text-sm text-slate-800">Perbandingan Zona: Area Pabrik vs. Area Kost</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+                            <p class="font-bold text-xs text-blue-700">Area Pabrik</p>
+                            <p id="recap-pabrik-omzet" class="font-bold text-base text-slate-900 mt-1">Rp 0</p>
+                            <p id="recap-pabrik-detail" class="text-[11px] text-slate-500 mt-0.5">0 transaksi • 0 poin</p>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+                            <p class="font-bold text-xs text-indigo-700">Area Kost</p>
+                            <p id="recap-kost-omzet" class="font-bold text-base text-slate-900 mt-1">Rp 0</p>
+                            <p id="recap-kost-detail" class="text-[11px] text-slate-500 mt-0.5">0 transaksi • 0 poin</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar Proporsi -->
+                    <div class="border border-slate-200 rounded-xl p-3.5 space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span>Pabrik: <span id="recap-pabrik-pct">0%</span></span>
+                            <span>Kost: <span id="recap-kost-pct">0%</span></span>
+                        </div>
+                        <div class="w-full bg-indigo-100 h-2.5 rounded-full overflow-hidden">
+                            <div id="recap-progress-bar" class="bg-blue-700 h-2.5" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <h2 class="font-bold text-sm text-slate-800 pt-1">Kontribusi Omzet per Warung Mitra</h2>
+                    <div id="warung-recap-list" class="space-y-2.5 pb-6"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 5: LOGIN & PENDAFTARAN MITRA WARUNG                  -->
+        <!-- ========================================================= -->
+        <div id="view-warung-login" class="flex-1 flex flex-col hidden">
+            <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
+                <h1 class="text-lg font-bold text-slate-800">Login Mitra Warung</h1>
+                <button id="btn-back-from-warung-login" class="text-sm font-semibold text-blue-700">Kembali</button>
+            </header>
+
+            <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-xs font-bold">
+                <button id="tab-warung-signin" class="py-3 text-blue-700 border-b-2 border-blue-700">Masuk Kasir</button>
+                <button id="tab-warung-signup" class="py-3 text-slate-500">Daftar Warung Baru</button>
+            </div>
+
+            <div class="p-5 flex-1 overflow-y-auto">
+                <!-- Tab Masuk Kasir -->
+                <div id="section-warung-signin" class="space-y-4">
+                    <p class="font-bold text-sm text-slate-800">Pilih Warung Mitra Anda</p>
+                    <div id="warung-select-list" class="space-y-2.5 max-h-60 overflow-y-auto custom-scroll pr-1"></div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Masukkan PIN Kasir (4–6 Digit)</label>
+                        <input id="login-warung-pin" type="password" inputmode="numeric" maxlength="6" placeholder="****"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600">
+                    </div>
+
+                    <button id="btn-warung-login"
+                        class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-full text-sm shadow">
+                        MASUK MODE KASIR
+                    </button>
+                </div>
+
+                <!-- Tab Daftar Warung Baru -->
+                <div id="section-warung-signup" class="space-y-4 hidden">
+                    <p class="font-bold text-sm text-slate-800">Registrasi Mitra Warung Baru</p>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Warung</label>
+                        <input id="reg-warung-name" type="text" placeholder="Contoh: Warung Bu Lilik"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pemilik</label>
+                        <input id="reg-warung-owner" type="text" placeholder="Contoh: Bu Lilik"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Zona Lokasi Warung</label>
+                        <div class="flex gap-2">
+                            <button type="button" id="zone-btn-pabrik"
+                                class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-blue-700 bg-blue-50 text-blue-800">
+                                Area Pabrik
+                            </button>
+                            <button type="button" id="zone-btn-kost"
+                                class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-600">
+                                Area Kost
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Buat PIN Kasir (4–6 Digit Angka)</label>
+                        <input id="reg-warung-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Contoh: 1234"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600">
+                    </div>
+                    <button id="btn-warung-register"
+                        class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-full text-sm shadow">
+                        DAFTARKAN WARUNG & MASUK
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 6: MODE KASIR WARUNG (POS BARANG x JUMLAH & SCAN QR) -->
+        <!-- ========================================================= -->
+        <div id="view-cashier" class="flex-1 flex flex-col hidden">
+            <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
+                <h1 class="text-lg font-bold text-slate-800">Mode Kasir Warung</h1>
+                <button id="btn-back-from-cashier"
+                    class="text-xs font-bold bg-indigo-100 text-indigo-900 px-3 py-1.5 rounded-full">
+                    Mode Karyawan
+                </button>
+            </header>
+
+            <div class="p-5 space-y-4 flex-1 overflow-y-auto pb-32">
+                <!-- Banner Warung Aktif -->
+                <div class="bg-blue-100 rounded-2xl p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] font-bold tracking-wider text-blue-800">MITRA WARUNG AKTIF</p>
+                            <h2 id="cashier-warung-name" class="text-lg font-bold text-blue-950">-</h2>
+                            <p class="text-xs text-blue-800">Zona: <span id="cashier-warung-zone">-</span></p>
+                        </div>
+                        <button id="btn-warung-logout"
+                            class="border border-blue-800 text-blue-900 font-semibold text-xs px-3 py-1.5 rounded-full">
+                            Ganti Warung
+                        </button>
+                    </div>
+                    <button id="btn-open-pos-settings"
+                        class="w-full bg-indigo-200/80 hover:bg-indigo-200 text-indigo-950 font-bold py-2.5 rounded-full text-xs">
+                        ATUR DAFTAR BARANG & NILAI POIN
+                    </button>
+                </div>
+
+                <!-- Langkah 1: Identifikasi Pembeli -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                    <h3 class="font-bold text-sm text-blue-900">1. Identifikasi Pembeli (Karyawan)</h3>
+
+                    <button id="btn-start-qr-scan"
+                        class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-full text-xs shadow">
+                        SCAN QR KARTU KARYAWAN
+                    </button>
+
+                    <!-- Area Kamera Pemindai QR -->
+                    <div id="qr-reader-wrapper" class="hidden space-y-2 bg-black p-2 rounded-xl">
+                        <div id="qr-reader" class="w-full rounded-lg overflow-hidden"></div>
+                        <button id="btn-stop-qr-scan"
+                            class="w-full bg-red-600 text-white text-xs font-bold py-2 rounded-lg">
+                            TUTUP KAMERA SCANNER
+                        </button>
+                    </div>
+
+                    <input id="cashier-emp-query" type="text" placeholder="Atau ketik No. HP / Paste ID QR"
+                        class="w-full border border-slate-300 bg-white rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-600">
+
+                    <button id="btn-lookup-emp"
+                        class="w-full border border-slate-400 bg-white hover:bg-slate-100 text-slate-800 font-bold py-2.5 rounded-full text-xs">
+                        CEK DATA KARYAWAN
+                    </button>
+
+                    <!-- Hasil Data Karyawan -->
+                    <div id="cashier-emp-result" class="hidden bg-indigo-100 rounded-xl p-3 text-indigo-950 text-xs space-y-0.5">
+                        <p id="cashier-emp-name" class="font-bold text-sm">-</p>
+                        <p>No. HP: <span id="cashier-emp-phone">-</span></p>
+                        <p class="font-semibold">Saldo Saat Ini: <span id="cashier-emp-points">0</span> Poin</p>
+                    </div>
+                </div>
+
+                <!-- Langkah 2: Pilih Barang Belanja (Barang x Jumlah) -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                    <h3 class="font-bold text-sm text-blue-900">2. Pilih Barang Belanja (Barang × Jumlah)</h3>
+
+                    <input id="cashier-product-search" type="text" placeholder="Cari Nama Barang di Katalog..."
+                        class="w-full border border-slate-300 bg-white rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-600">
+
+                    <!-- Daftar Katalog Scrollable dengan Scrollbar Kanan -->
+                    <div id="cashier-product-list"
+                        class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll pr-2"></div>
+
+                    <!-- Input Qty & Tombol Tambah -->
+                    <div class="flex gap-2 items-center pt-1">
+                        <div class="w-24">
+                            <input id="cashier-qty-input" type="number" min="1" value="1"
+                                class="w-full border border-slate-300 bg-white rounded-xl px-3 py-2.5 text-sm text-center font-bold focus:outline-none focus:border-blue-600">
+                        </div>
+                        <button id="btn-add-to-cart"
+                            class="flex-1 bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 px-3 rounded-full text-xs shadow">
+                            + TAMBAH KE BELANJAAN
+                        </button>
+                    </div>
+
+                    <!-- Rincian Struk Belanja Scrollable -->
+                    <div id="cashier-cart-section" class="hidden pt-2 border-t border-slate-200 space-y-2">
+                        <p class="font-bold text-xs text-slate-800">
+                            Rincian Struk Belanja (<span id="cashier-cart-count">0</span> item):
+                        </p>
+                        <div id="cashier-cart-list"
+                            class="space-y-1.5 max-h-44 overflow-y-auto custom-scroll pr-2"></div>
+                    </div>
+
+                    <p id="cashier-rule-info" class="text-[11px] text-slate-500">
+                        Ketentuan aktif: Kelipatan Rp 10.000 = 1 Poin
+                    </p>
+                </div>
+            </div>
+
+            <!-- Bar Total & Checkout Menempel di Bawah -->
+            <div class="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 px-5 py-3 shadow-lg space-y-2">
+                <div class="flex justify-between items-center text-sm font-bold">
+                    <span>Total: <span id="cashier-total-amount">Rp 0</span></span>
+                    <span class="text-blue-700">Dapat: +<span id="cashier-total-points">0</span> Poin</span>
+                </div>
+                <button id="btn-process-tx"
+                    class="w-full bg-blue-800 hover:bg-blue-900 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold py-3 rounded-full text-xs shadow">
+                    PROSES TRANSAKSI & TAMBAH POIN
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 7: PENGATURAN DAFTAR BARANG & NILAI POIN             -->
+        <!-- ========================================================= -->
+        <div id="view-pos-settings" class="flex-1 flex flex-col hidden">
+            <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
+                <h1 class="text-lg font-bold text-slate-800">Atur Barang & Nilai Poin</h1>
+                <button id="btn-back-from-pos-settings" class="text-sm font-bold text-blue-700">Selesai</button>
+            </header>
+
+            <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-xs font-bold">
+                <button id="tab-pos-products" class="py-3 text-blue-700 border-b-2 border-blue-700">Daftar Barang</button>
+                <button id="tab-pos-points" class="py-3 text-slate-500">Nilai Poin</button>
+            </div>
+
+            <div class="p-5 flex-1 overflow-y-auto">
+                <!-- Tab 1: Daftar Harga Barang -->
+                <div id="section-pos-products" class="space-y-4">
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
+                        <p class="font-bold text-xs text-blue-900">Tambah Barang Baru</p>
+                        <input id="new-prod-name" type="text" placeholder="Nama Barang (Contoh: Soto Ayam)"
+                            class="w-full border border-slate-300 bg-white rounded-xl px-3.5 py-2.5 text-sm">
+                        <input id="new-prod-price" type="number" placeholder="Harga Satuan (Rp)"
+                            class="w-full border border-slate-300 bg-white rounded-xl px-3.5 py-2.5 text-sm">
+                        <button id="btn-add-product"
+                            class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 rounded-full text-xs">
+                            + SIMPAN BARANG KE KATALOG
+                        </button>
+                    </div>
+
+                    <p class="font-bold text-sm text-slate-800">Daftar Harga Satuan Aktif</p>
+                    <input id="pos-prod-search" type="text" placeholder="Cari nama barang..."
+                        class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm">
+
+                    <div id="pos-product-list"
+                        class="space-y-2 max-h-72 overflow-y-auto custom-scroll pr-2 pb-4"></div>
+                </div>
+
+                <!-- Tab 2: Daftar & Pengaturan Nilai Poin -->
+                <div id="section-pos-points" class="space-y-4 hidden">
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
+                        <p class="font-bold text-	
