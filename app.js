@@ -1,5 +1,5 @@
 // =========================================================
-// 1. KONFIGURASI SUPABASE (ISI SESUAI SupabaseConfig.kt)
+// 1. KONFIGURASI SUPABASE (PROYEK LOYALTYPABRIK)
 // =========================================================
 const SUPABASE_URL = "https://zoencdqkequznfxxemea.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_MAcRhFIHjcDVyV18IjXdAw_da8wLt5b";
@@ -182,7 +182,6 @@ async function handleEmployeeRegister() {
         return;
     }
 
-    // Cek jika nomor HP sudah ada, langsung login
     const { data: existing } = await db
         .from("employees")
         .select("*")
@@ -290,7 +289,6 @@ async function executeRedeem() {
     const reward = pendingRedeemReward;
     document.getElementById("modal-redeem-confirm").classList.add("hidden");
 
-    // 1. Validasi ulang saldo terkini di server
     const { data: latestEmp, error: fetchErr } = await db
         .from("employees")
         .select("*")
@@ -308,11 +306,9 @@ async function executeRedeem() {
         return;
     }
 
-    // 2. Buat kode voucher unik LP-XXXXXX
     const randomNum = Math.floor(100000 + Math.random() * 900000);
     const voucherCode = `LP-${randomNum}`;
 
-    // 3. Simpan riwayat klaim ke tabel redemptions
     const { error: insertErr } = await db.from("redemptions").insert([
         {
             employee_id: latestEmp.id,
@@ -329,7 +325,6 @@ async function executeRedeem() {
         return;
     }
 
-    // 4. Potong saldo poin karyawan
     const remainingPoints = latestEmp.points - reward.pointsCost;
     const { error: updateErr } = await db
         .from("employees")
@@ -401,7 +396,6 @@ async function openHistoryScreen() {
     }
     const transactions = allTx || [];
 
-    // Filter histori pribadi karyawan
     const myTx = transactions.filter((t) => t.employee_id === currentEmployee.id);
     const totalBelanjaSaya = myTx.reduce((sum, t) => sum + (t.amount || 0), 0);
     const totalPoinSaya = myTx.reduce((sum, t) => sum + (t.points_earned || 0), 0);
@@ -435,7 +429,6 @@ async function openHistoryScreen() {
         });
     }
 
-    // Rekap Perbandingan Zona: Area Pabrik vs Area Kost
     const pabrikTx = transactions.filter((t) => (t.warung_zone || "").toLowerCase() === "area pabrik");
     const kostTx = transactions.filter((t) => (t.warung_zone || "").toLowerCase() === "area kost");
 
@@ -458,7 +451,6 @@ async function openHistoryScreen() {
     document.getElementById("recap-kost-pct").textContent = `${persenKost}%`;
     document.getElementById("recap-progress-bar").style.width = `${persenPabrik}%`;
 
-    // Peringkat Kontribusi per Warung
     const grouped = {};
     transactions.forEach((tx) => {
         const key = `${(tx.warung_name || "").trim()}|${(tx.warung_zone || "").trim()}`;
@@ -864,7 +856,6 @@ async function processCashierTransaction() {
         return;
     }
 
-    // Cek batas anti-fraud transaksi harian
     const todayStr = new Date().toISOString().slice(0, 10);
     const { data: empTxs } = await db
         .from("transactions")
@@ -879,7 +870,6 @@ async function processCashierTransaction() {
 
     const itemsSummary = cartItems.map((i) => `${i.quantity}x ${i.product.name}`).join(", ");
 
-    // 1. Simpan transaksi
     const { error: txErr } = await db.from("transactions").insert([
         {
             employee_id: scannedEmployee.id,
@@ -896,7 +886,6 @@ async function processCashierTransaction() {
         return;
     }
 
-    // 2. Tambahkan poin karyawan
     const newPoints = (scannedEmployee.points || 0) + estimasiPoin;
     const { error: empErr } = await db
         .from("employees")
@@ -1126,7 +1115,7 @@ async function handleAddPointRule() {
 }
 
 // =========================================================
-// 10. EVENT LISTENERS & INISIALISASI HALAMAN
+// 10. EVENT LISTENERS & ROUTING PERAN OTOMATIS
 // =========================================================
 document.addEventListener("DOMContentLoaded", () => {
     // Tab Login / Daftar Karyawan
@@ -1153,8 +1142,8 @@ document.addEventListener("DOMContentLoaded", () => {
         showView("view-emp-auth");
     });
 
+    // Gerbang awal ke Mode Kasir Warung (sebelum masuk sebagai karyawan)
     document.getElementById("btn-open-cashier-from-auth").addEventListener("click", openCashierEntry);
-    document.getElementById("btn-open-cashier-from-card").addEventListener("click", openCashierEntry);
 
     // Redeem
     document.getElementById("btn-back-from-redeem").addEventListener("click", renderEmployeeCard);
@@ -1181,8 +1170,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Warung Login & Daftar
     document.getElementById("btn-back-from-warung-login").addEventListener("click", () => {
-        if (currentEmployee) renderEmployeeCard();
-        else showView("view-emp-auth");
+        showView("view-emp-auth");
     });
     document.getElementById("tab-warung-signin").addEventListener("click", () => {
         document.getElementById("section-warung-signin").classList.remove("hidden");
@@ -1213,15 +1201,18 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-warung-login").addEventListener("click", handleWarungLogin);
     document.getElementById("btn-warung-register").addEventListener("click", handleWarungRegister);
 
-    // Kasir POS
-    document.getElementById("btn-back-from-cashier").addEventListener("click", () => {
-        if (currentEmployee) renderEmployeeCard();
-        else showView("view-emp-auth");
-    });
-    document.getElementById("btn-warung-logout").addEventListener("click", () => {
+    // Kasir POS (Khusus operasional warung)
+    const exitCashierToLogin = () => {
         saveWarungSession(null);
+        scannedEmployee = null;
+        cartItems = [];
+        document.getElementById("cashier-emp-result").classList.add("hidden");
+        document.getElementById("cashier-emp-query").value = "";
         openWarungLoginScreen();
-    });
+    };
+    document.getElementById("btn-warung-logout").addEventListener("click", exitCashierToLogin);
+    document.getElementById("btn-warung-logout-header").addEventListener("click", exitCashierToLogin);
+
     document.getElementById("btn-open-pos-settings").addEventListener("click", openPosSettingsScreen);
     document.getElementById("btn-start-qr-scan").addEventListener("click", startQrScanner);
     document.getElementById("btn-stop-qr-scan").addEventListener("click", stopQrScanner);
@@ -1264,8 +1255,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.getElementById("btn-add-point-rule").addEventListener("click", handleAddPointRule);
 
-    // Tampilkan layar awal sesuai sesi tersimpan
-    if (currentEmployee) {
+    // Routing otomatis sesuai sesi atau parameter URL (?mode=kasir)
+    const urlParams = new URLSearchParams(window.location.search);
+    const modeParam = urlParams.get("mode");
+
+    if (currentWarung) {
+        openCashierScreen();
+    } else if (modeParam === "kasir") {
+        openWarungLoginScreen();
+    } else if (currentEmployee) {
         renderEmployeeCard();
     } else {
         showView("view-emp-auth");
