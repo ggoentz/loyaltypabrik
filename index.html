@@ -43,7 +43,7 @@
         <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm space-y-2 pointer-events-none"></div>
 
         <!-- ========================================================= -->
-        <!-- VIEW 1: REGISTRASI & LOGIN KARYAWAN                       -->
+        <!-- VIEW 1: GERBANG AWAL (REGISTRASI & LOGIN KARYAWAN)        -->
         <!-- ========================================================= -->
         <div id="view-emp-auth" class="flex-1 flex flex-col">
             <header class="bg-blue-900 text-white px-5 py-4 shadow">
@@ -102,7 +102,7 @@
         </div>
 
         <!-- ========================================================= -->
-        <!-- VIEW 2: KARTU QR POIN KARYAWAN                            -->
+        <!-- VIEW 2: KARTU QR POIN KARYAWAN (KHUSUS KARYAWAN)          -->
         <!-- ========================================================= -->
         <div id="view-emp-card" class="flex-1 flex flex-col hidden">
             <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
@@ -146,15 +146,8 @@
 
                     <button id="btn-emp-logout"
                         class="w-full border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold py-2.5 rounded-full text-xs">
-                        GANTI AKUN / DAFTAR BARU
+                        KELUAR / GANTI AKUN KARYAWAN
                     </button>
-
-                    <div class="pt-2">
-                        <button id="btn-open-cashier-from-card"
-                            class="w-full text-blue-700 hover:bg-blue-50 font-bold py-2.5 rounded-full text-sm">
-                            BUKA MODE KASIR WARUNG
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -261,9 +254,14 @@
         <!-- VIEW 5: LOGIN & PENDAFTARAN MITRA WARUNG                  -->
         <!-- ========================================================= -->
         <div id="view-warung-login" class="flex-1 flex flex-col hidden">
-            <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
-                <h1 class="text-lg font-bold text-slate-800">Login Mitra Warung</h1>
-                <button id="btn-back-from-warung-login" class="text-sm font-semibold text-blue-700">Kembali</button>
+            <header class="bg-blue-900 text-white px-5 py-4 flex justify-between items-center shadow">
+                <div>
+                    <h1 class="text-lg font-bold">Portal Kasir Warung</h1>
+                    <p class="text-[11px] text-blue-200">Khusus Mitra Warung Terdaftar</p>
+                </div>
+                <button id="btn-back-from-warung-login" class="text-xs font-semibold bg-blue-800 px-3 py-1.5 rounded-full">
+                    Halaman Awal
+                </button>
             </header>
 
             <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-xs font-bold">
@@ -327,14 +325,14 @@
         </div>
 
         <!-- ========================================================= -->
-        <!-- VIEW 6: MODE KASIR WARUNG (POS BARANG x JUMLAH & SCAN QR) -->
+        <!-- VIEW 6: MODE KASIR WARUNG (KHUSUS OPERASIONAL KASIR)      -->
         <!-- ========================================================= -->
         <div id="view-cashier" class="flex-1 flex flex-col hidden">
             <header class="bg-white border-b border-slate-200 px-5 py-4 flex justify-between items-center">
                 <h1 class="text-lg font-bold text-slate-800">Mode Kasir Warung</h1>
-                <button id="btn-back-from-cashier"
-                    class="text-xs font-bold bg-indigo-100 text-indigo-900 px-3 py-1.5 rounded-full">
-                    Mode Karyawan
+                <button id="btn-warung-logout-header"
+                    class="text-xs font-bold bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-full">
+                    Keluar Kasir
                 </button>
             </header>
 
