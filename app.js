@@ -1168,9 +1168,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("tab-hist-personal").className = "py-3 text-slate-500";
     });
 
-    // Warung Login & Daftar
+// Warung Login & Daftar
     document.getElementById("btn-back-from-warung-login").addEventListener("click", () => {
-        showView("view-emp-auth");
+        window.history.replaceState({}, "", window.location.pathname);
+        if (currentEmployee) renderEmployeeCard();
+        else showView("view-emp-auth");
     });
     document.getElementById("tab-warung-signin").addEventListener("click", () => {
         document.getElementById("section-warung-signin").classList.remove("hidden");
@@ -1255,17 +1257,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.getElementById("btn-add-point-rule").addEventListener("click", handleAddPointRule);
 
-    // Routing otomatis sesuai sesi atau parameter URL (?mode=kasir)
+// Routing ketat berdasarkan URL: ?mode=kasir khusus Kasir, tanpa parameter khusus Karyawan
     const urlParams = new URLSearchParams(window.location.search);
     const modeParam = urlParams.get("mode");
 
-    if (currentWarung) {
-        openCashierScreen();
-    } else if (modeParam === "kasir") {
-        openWarungLoginScreen();
-    } else if (currentEmployee) {
-        renderEmployeeCard();
+    if (modeParam === "kasir") {
+        if (currentWarung) {
+            openCashierScreen();
+        } else {
+            openWarungLoginScreen();
+        }
     } else {
-        showView("view-emp-auth");
+        if (currentEmployee) {
+            renderEmployeeCard();
+        } else {
+            showView("view-emp-auth");
+        }
     }
 });
